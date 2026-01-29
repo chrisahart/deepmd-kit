@@ -24,6 +24,9 @@ from .polarizability import (
 from .property import (
     PropertyFittingNet,
 )
+from .polaron import (
+    PolaronFittingNet,
+)
 from .type_predict import (
     TypePredictNet,
 )
@@ -38,5 +41,6 @@ __all__ = [
     "Fitting",
     "PolarFittingNet",
     "PropertyFittingNet",
+    "PolaronFittingNet",
     "TypePredictNet",
 ]

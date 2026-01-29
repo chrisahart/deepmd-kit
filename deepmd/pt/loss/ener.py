@@ -5,6 +5,7 @@ from typing import (
 
 import torch
 import torch.nn.functional as F
+import numpy as np
 
 from deepmd.pt.loss.loss import (
     TaskLoss,
@@ -50,6 +51,8 @@ class EnergyStdLoss(TaskLoss):
         limit_pref_pf: float = 0.0,
         relative_f: float | None = None,
         enable_atom_ener_coeff: bool = False,
+        enable_pref_frame_ae: bool = False,
+        enable_pref_frame_force: bool = False,
         start_pref_gf: float = 0.0,
         limit_pref_gf: float = 0.0,
         numb_generalized_coord: int = 0,
@@ -91,6 +94,8 @@ class EnergyStdLoss(TaskLoss):
             a shift given by relative_f
         enable_atom_ener_coeff : bool
             if true, the energy will be computed as \sum_i c_i E_i
+        enable_pref_frame_aef : bool
+            if true, pref_frame_ae
         start_pref_gf : float
             The prefactor of generalized force loss at the start of the training.
         limit_pref_gf : float
@@ -135,6 +140,8 @@ class EnergyStdLoss(TaskLoss):
         self.limit_pref_gf = limit_pref_gf
         self.relative_f = relative_f
         self.enable_atom_ener_coeff = enable_atom_ener_coeff
+        self.enable_pref_frame_ae = enable_pref_frame_ae
+        self.enable_pref_frame_force = enable_pref_frame_force
         self.numb_generalized_coord = numb_generalized_coord
         if self.has_gf and self.numb_generalized_coord < 1:
             raise RuntimeError(
@@ -202,7 +209,7 @@ class EnergyStdLoss(TaskLoss):
             if self.enable_atom_ener_coeff and "atom_energy" in model_pred:
                 atom_ener_pred = model_pred["atom_energy"]
                 # when ener_coeff (\nu) is defined, the energy is defined as
-                # E = \sum_i \nu_i E_i
+                # E = \sum_i \nu_i E_i\
                 # instead of the sum of atomic energies.
                 #
                 # A case is that we want to train reaction energy
@@ -268,6 +275,17 @@ class EnergyStdLoss(TaskLoss):
             force_pred = model_pred["force"]
             force_label = label["force"]
             diff_f = (force_label - force_pred).reshape(-1)
+
+            if self.enable_pref_frame_force:
+                pref_frame_start_force = label["pref_frame_start_force"].reshape(natoms)
+                pref_frame_end_force = label["pref_frame_end_force"].reshape(natoms)
+                pref_frame_force = pref_frame_end_force + (pref_frame_start_force - pref_frame_end_force) * coef
+                # print('pref_frame_start_force', pref_frame_start_force)
+                # print('pref_frame_end_force', pref_frame_end_force)
+                # print('pref_frame_force', pref_frame_force)
+
+                for atom in range(natoms):
+                    diff_f[atom] = diff_f[atom] * pref_frame_force[atom]
 
             if self.relative_f is not None:
                 force_label_3 = force_label.reshape(-1, 3)
@@ -381,9 +399,23 @@ class EnergyStdLoss(TaskLoss):
             pref_ae = pref_ae * find_atom_ener
             atom_ener_reshape = atom_ener.reshape(-1)
             atom_ener_label_reshape = atom_ener_label.reshape(-1)
-            l2_atom_ener_loss = torch.square(
-                atom_ener_label_reshape - atom_ener_reshape
-            ).mean()
+            
+            if self.enable_pref_frame_ae:
+                    l2_atom_ener_loss = torch.ones(natoms, dtype=env.GLOBAL_PT_FLOAT_PRECISION, device=env.DEVICE)
+                    pref_frame_start_ae = label["pref_frame_start_ae"].reshape(natoms)
+                    pref_frame_end_ae = label["pref_frame_end_ae"].reshape(natoms)
+                    pref_frame_ae = pref_frame_end_ae + (pref_frame_start_ae - pref_frame_end_ae) * coef
+                    # print('pref_frame_start_ae', pref_frame_start_ae)
+                    # print('pref_frame_end_ae', pref_frame_end_ae)
+                    # print('pref_frame_ae', pref_frame_ae)
+                    
+                    for atom in range(natoms):
+                        l2_atom_ener_loss[atom] = pref_frame_ae[atom] * (atom_ener_label_reshape[atom] - atom_ener_reshape[atom])
+            else:
+                l2_atom_ener_loss = atom_ener_label_reshape - atom_ener_reshape
+
+            l2_atom_ener_loss = torch.square(l2_atom_ener_loss).mean()
+            
             if not self.inference:
                 more_loss["l2_atom_ener_loss"] = self.display_if_exist(
                     l2_atom_ener_loss.detach(), find_atom_ener
@@ -482,6 +514,48 @@ class EnergyStdLoss(TaskLoss):
                     default=1.0,
                 )
             )
+        if self.enable_pref_frame_force:
+            label_requirement.append(
+                DataRequirementItem(
+                    "pref_frame_start_force",
+                    ndof=1,
+                    atomic=True,
+                    must=False,
+                    high_prec=False,
+                    default=1.0,
+                )
+            )
+            label_requirement.append(
+                DataRequirementItem(
+                    "pref_frame_end_force",
+                    ndof=1,
+                    atomic=True,
+                    must=False,
+                    high_prec=False,
+                    default=1.0,
+                )
+            )           
+        if self.enable_pref_frame_ae:
+            label_requirement.append(
+                DataRequirementItem(
+                    "pref_frame_start_ae",
+                    ndof=1,
+                    atomic=True,
+                    must=False,
+                    high_prec=False,
+                    default=1.0,
+                )
+            )
+            label_requirement.append(
+                DataRequirementItem(
+                    "pref_frame_end_ae",
+                    ndof=1,
+                    atomic=True,
+                    must=False,
+                    high_prec=False,
+                    default=1.0,
+                )
+            )           
         return label_requirement
 
     def serialize(self) -> dict:
@@ -508,6 +582,8 @@ class EnergyStdLoss(TaskLoss):
             "limit_pref_pf": self.limit_pref_pf,
             "relative_f": self.relative_f,
             "enable_atom_ener_coeff": self.enable_atom_ener_coeff,
+            "enable_pref_frame_force": self.enable_pref_frame_force,
+            "enable_pref_frame_ae": self.enable_pref_frame_ae,
             "start_pref_gf": self.start_pref_gf,
             "limit_pref_gf": self.limit_pref_gf,
             "numb_generalized_coord": self.numb_generalized_coord,

@@ -42,7 +42,9 @@ from .polar_atomic_model import (
 from .property_atomic_model import (
     DPPropertyAtomicModel,
 )
-
+from .polaron_atomic_model import (
+    DPPolaronAtomicModel,
+)
 __all__ = [
     "BaseAtomicModel",
     "DPAtomicModel",
@@ -51,6 +53,7 @@ __all__ = [
     "DPEnergyAtomicModel",
     "DPPolarAtomicModel",
     "DPPropertyAtomicModel",
+    "DPPolaronAtomicModel",
     "DPZBLLinearEnergyAtomicModel",
     "LinearEnergyAtomicModel",
     "PairTabAtomicModel",

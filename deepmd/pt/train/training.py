@@ -34,6 +34,7 @@ from deepmd.pt.loss import (
     EnergySpinLoss,
     EnergyStdLoss,
     PropertyLoss,
+    PolaronLoss,
     TaskLoss,
     TensorLoss,
 )
@@ -1543,6 +1544,10 @@ def get_loss(
         loss_params["var_name"] = var_name
         loss_params["intensive"] = intensive
         return PropertyLoss(**loss_params)
+    elif loss_type == "polaron":
+        loss_params["starter_learning_rate"] = start_lr
+        return PolaronLoss(**loss_params)
+
     else:
         loss_params["starter_learning_rate"] = start_lr
         return TaskLoss.get_class_by_type(loss_type).get_loss(loss_params)
