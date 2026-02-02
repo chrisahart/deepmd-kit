@@ -1897,8 +1897,8 @@ def fitting_dos() -> list[Argument]:
         Argument("seed", [int, None], optional=True, doc=doc_seed),
         Argument("numb_dos", int, optional=True, default=300, doc=doc_numb_dos),
     ]
-@fitting_args_plugin.register("polaron", doc=doc_only_pt_supported)
-def fitting_polaron():
+@fitting_args_plugin.register("population", doc=doc_only_pt_supported)
+def fitting_population():
     return [
         Argument("numb_fparam", int, optional=True, default=0),
         Argument("numb_aparam", int, optional=True, default=0),
@@ -2637,8 +2637,6 @@ def loss_ener() -> list[Argument]:
     doc_numb_generalized_coord = "The dimension of generalized coordinates. Required when generalized force loss is used."
     doc_relative_f = "If provided, relative force error will be used in the loss. The difference of force will be normalized by the magnitude of the force in the label with a shift given by `relative_f`, i.e. DF_i / ( || F || + relative_f ) with DF denoting the difference between prediction and label and || F || denoting the L2 norm of the label."
     doc_enable_atom_ener_coeff = "If true, the energy will be computed as \\sum_i c_i E_i. c_i should be provided by file atom_ener_coeff.npy in each data system, otherwise it's 1."
-    doc_enable_pref_frame_force = "If true, pref_frame_force."
-    doc_enable_pref_frame_ae = "If true, pref_frame_ae."
     doc_use_huber = (
         "Enables Huber loss calculation for energy/force/virial terms with user-defined threshold delta (D). "
         "The loss function smoothly transitions between L2 and L1 loss: \n\n"
@@ -2739,20 +2737,6 @@ def loss_ener() -> list[Argument]:
             optional=True,
             default=False,
             doc=doc_enable_atom_ener_coeff,
-        ),
-        Argument(
-            "enable_pref_frame_ae",
-            [bool],
-            optional=True,
-            default=False,
-            doc=doc_enable_pref_frame_ae,
-        ),
-        Argument(
-            "enable_pref_frame_force",
-            [bool],
-            optional=True,
-            default=False,
-            doc=doc_enable_pref_frame_force,
         ),
         Argument(
             "start_pref_gf",
@@ -2977,8 +2961,8 @@ def loss_dos() -> list[Argument]:
         ),
     ]
 
-@loss_args_plugin.register("polaron")
-def loss_polaron():
+@loss_args_plugin.register("population")
+def loss_population():
     doc_loss_func = "The loss function to minimize, such as 'mae','smooth_mae'."
     doc_metric = "The metric for display. This list can include 'smooth_mae', 'mae', 'mse' and 'rmse'."
     doc_beta = "The 'beta' parameter in 'smooth_mae' loss."
@@ -3073,13 +3057,6 @@ def loss_polaron():
             optional=True,
             default=1.00,
             doc=doc_beta,
-        ),
-        Argument(
-            "enable_pref_frame_polaron",
-            [bool],
-            optional=True,
-            default=False,
-            doc="Use prefactor from file per frame for polaron.",
         ),
     ]
 

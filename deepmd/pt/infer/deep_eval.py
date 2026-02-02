@@ -43,8 +43,8 @@ from deepmd.infer.deep_property import (
 from deepmd.infer.deep_wfc import (
     DeepWFC,
 )
-from deepmd.infer.deep_polaron import (
-    DeepPolaron,
+from deepmd.infer.deep_population import (
+    DeepPopulation,
 )
 from deepmd.pt.model.model import (
     get_model,
@@ -274,8 +274,8 @@ class DeepEval(DeepEvalBackend):
             return DeepWFC
         elif self.get_var_name() in model_output_type:
             return DeepProperty
-        elif "polaron" in model_output_type:
-            return DeepPolaron
+        elif "population" in model_output_type:
+            return DeepPopulation
         else:
             raise RuntimeError("Unknown model type")
 

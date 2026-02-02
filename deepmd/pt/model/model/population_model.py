@@ -6,7 +6,7 @@ from typing import (
 import torch
 
 from deepmd.pt.model.atomic_model import (
-    DPPolaronAtomicModel
+    DPPopulationAtomicModel
 )
 from deepmd.pt.model.model.model import (
     BaseModel,
@@ -19,12 +19,12 @@ from .make_model import (
     make_model,
 )
 
-DPPolaronAtomicModel_ = make_model(DPPolaronAtomicModel)
+DPPopulationAtomicModel_ = make_model(DPPopulationAtomicModel)
 
 
-@BaseModel.register("polaron")
-class PolaronModel(DPModelCommon, DPPolaronAtomicModel_):
-    model_type = "polaron"
+@BaseModel.register("population")
+class PopulationModel(DPModelCommon, DPPopulationAtomicModel_):
+    model_type = "population"
 
     def __init__(
         self,
@@ -32,7 +32,7 @@ class PolaronModel(DPModelCommon, DPPolaronAtomicModel_):
         **kwargs,
     ) -> None:
         DPModelCommon.__init__(self)
-        DPPolaronAtomicModel_.__init__(self, *args, **kwargs)
+        DPPopulationAtomicModel_.__init__(self, *args, **kwargs)
 
     def translated_output_def(self):
         out_def_data = self.model_output_def().get_data()

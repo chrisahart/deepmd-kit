@@ -18,8 +18,8 @@ from .loss import (
 from .property import (
     PropertyLoss,
 )
-from .polaron import (
-    PolaronLoss,
+from .population import (
+    PopulationLoss,
 )
 from .tensor import (
     TensorLoss,
@@ -32,7 +32,7 @@ __all__ = [
     "EnergySpinLoss",
     "EnergyStdLoss",
     "PropertyLoss",
-    "PolaronLoss",
+    "PopulationLoss",
     "TaskLoss",
     "TensorLoss",
 ]

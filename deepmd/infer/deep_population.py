@@ -18,8 +18,8 @@ from .deep_eval import (
 )
 
 
-class DeepPolaron(DeepEval):
-    """Deep Polaron model.
+class DeepPopulation(DeepEval):
+    """Deep Population model.
 
     Parameters
     ----------
@@ -133,4 +133,4 @@ class DeepPolaron(DeepEval):
             return (atomic_spin,)
 
 
-__all__ = ["DeepPolaron"]
+__all__ = ["DeepPopulation"]

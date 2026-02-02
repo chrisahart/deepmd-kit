@@ -21,7 +21,7 @@ from functools import partial
 
 log = logging.getLogger(__name__)
 
-class PolaronLoss(TaskLoss):
+class PopulationLoss(TaskLoss):
     def __init__(
         self,
         loss_func: str = "smooth_mae",
@@ -31,7 +31,6 @@ class PolaronLoss(TaskLoss):
         limit_pref_spin: float = 1.00,
         start_pref_spin_total: float = 1.00,
         limit_pref_spin_total: float = 1.00,
-        enable_pref_frame_polaron: bool = False,
         start_pref_pop: float = 1.00,
         limit_pref_pop: float = 1.00,
         start_pref_pop_alpha_total: float = 1.00,
@@ -80,7 +79,6 @@ class PolaronLoss(TaskLoss):
         self.limit_pref_spin_total = limit_pref_spin_total
         self.start_pref_pop = start_pref_pop
         self.limit_pref_pop = limit_pref_pop
-        self.enable_pref_frame_polaron = enable_pref_frame_polaron
         self.start_pref_pop_alpha_total = start_pref_pop_alpha_total
         self.limit_pref_pop_alpha_total = limit_pref_pop_alpha_total
         self.start_pref_pop_beta_total = start_pref_pop_beta_total
@@ -121,29 +119,13 @@ class PolaronLoss(TaskLoss):
         pref_pop = self.limit_pref_pop + (self.start_pref_pop - self.limit_pref_pop) * coef
         pref_pop_alpha_total = self.limit_pref_pop_alpha_total + (self.start_pref_pop_alpha_total - self.limit_pref_pop_alpha_total) * coef
         pref_pop_beta_total = self.limit_pref_pop_beta_total + (self.start_pref_pop_beta_total - self.limit_pref_pop_beta_total) * coef
-
-        if self.enable_pref_frame_polaron:
-            pref_frame_start_polaron = label["pref_frame_start_polaron"].reshape(natoms)
-            pref_frame_end_polaron = label["pref_frame_end_polaron"].reshape(natoms)
-            pref_frame_polaron = pref_frame_end_polaron + (pref_frame_start_polaron - pref_frame_end_polaron) * coef
-            # print('pref_frame_start_polaron', pref_frame_start_polaron)
-            # print('pref_frame_end_polaron', pref_frame_end_polaron)
-            # print('pref_frame_polaron', pref_frame_polaron)
-            # print('coef', coef)
-
+        
         loss = torch.zeros(1, dtype=env.GLOBAL_PT_FLOAT_PRECISION, device=env.DEVICE)[0]
         more_loss = {}
 
         # get the label and model prediction
-        # pop_pred = model_pred["spin"]
-        # pop_label = label["atom_spin"].reshape([-1, natoms, self.task_dim])
         pop_pred = model_pred["spin"][0]
         pop_label = label["atom_spin"].reshape([natoms, self.task_dim])
-
-        if self.enable_pref_frame_polaron:
-            for atom in range(natoms):
-                pop_pred[atom] = pop_pred[atom] * pref_frame_polaron[atom]
-                pop_label[atom] = pop_label[atom] * pref_frame_polaron[atom]
 
         # print('pop_pred', pop_pred)
         # print('pop_label', pop_label)
@@ -390,25 +372,4 @@ class PolaronLoss(TaskLoss):
                 high_prec=True,
             )
         )
-        if self.enable_pref_frame_polaron:
-            label_requirement.append(
-                DataRequirementItem(
-                    "pref_frame_start_polaron",
-                    ndof=1,
-                    atomic=True,
-                    must=False,
-                    high_prec=False,
-                    default=1.0,
-                )
-            )      
-            label_requirement.append(
-                DataRequirementItem(
-                    "pref_frame_end_polaron",
-                    ndof=1,
-                    atomic=True,
-                    must=False,
-                    high_prec=False,
-                    default=1.0,
-                )
-            )           
         return label_requirement

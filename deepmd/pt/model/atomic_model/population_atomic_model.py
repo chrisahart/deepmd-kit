@@ -2,8 +2,8 @@
 
 import torch
 
-from deepmd.pt.model.task.polaron import (
-    PolaronFittingNet
+from deepmd.pt.model.task.population import (
+    PopulationFittingNet
 )
 
 from .dp_atomic_model import (
@@ -11,9 +11,9 @@ from .dp_atomic_model import (
 )
 
 
-class DPPolaronAtomicModel(DPAtomicModel):
+class DPPopulationAtomicModel(DPAtomicModel):
     def __init__(self, descriptor, fitting, type_map, **kwargs):
-        if not isinstance(fitting, PolaronFittingNet): ######## Change here
+        if not isinstance(fitting, PopulationFittingNet): ######## Change here
             raise TypeError(
                 "fitting must be an instance of PropertyFittingNet for DPPropertyAtomicModel"
             )
@@ -24,5 +24,5 @@ class DPPolaronAtomicModel(DPAtomicModel):
         ret: dict[str, torch.Tensor],
         atype: torch.Tensor,
     ):
-        """don't apply bias for polaron fitting"""
+        """don't apply bias for population fitting"""
         return ret
