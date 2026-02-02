@@ -44,7 +44,7 @@ class DeepPopulation(DeepEval):
             FittingOutputDef(
                 [
                     OutputVariableDef(
-                    "spin",
+                    "population",
                     [2],
                     reducible=False,
                     r_differentiable=False,
@@ -123,14 +123,14 @@ class DeepPopulation(DeepEval):
             **kwargs,
         )
 
-        atomic_spin = results["spin"].reshape(nframes, natoms, 2)
+        atomic_population = results["population"].reshape(nframes, natoms, 2)
 
         if atomic:
             return (
-                atomic_spin,
+                atomic_population,
             )
         else:
-            return (atomic_spin,)
+            return (atomic_population,)
 
 
 __all__ = ["DeepPopulation"]

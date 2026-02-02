@@ -37,7 +37,7 @@ class PopulationModel(DPModelCommon, DPPopulationAtomicModel_):
     def translated_output_def(self):
         out_def_data = self.model_output_def().get_data()
         output_def = {
-            f"spin": out_def_data["spin"],
+            f"population": out_def_data["population"],
         }
         if "mask" in out_def_data:
             output_def["mask"] = out_def_data["mask"]
@@ -61,7 +61,7 @@ class PopulationModel(DPModelCommon, DPPopulationAtomicModel_):
             do_atomic_virial=do_atomic_virial,
         )
         model_predict = {}
-        model_predict["spin"] = model_ret["spin"]
+        model_predict["population"] = model_ret["population"]
 
         if "mask" in model_ret:
             model_predict["mask"] = model_ret["mask"]
@@ -91,7 +91,7 @@ class PopulationModel(DPModelCommon, DPPopulationAtomicModel_):
             extra_nlist_sort=self.need_sorted_nlist_for_lower(),
         )
         model_predict = {}
-        model_predict["spin"] = model_ret["spin"]
+        model_predict["population"] = model_ret["population"]
         if "mask" in model_ret:
             model_predict["mask"] = model_ret["mask"]
         return model_predict

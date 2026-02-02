@@ -33,8 +33,8 @@ device = env.DEVICE
 log = logging.getLogger(__name__)
 
 
-@Fitting.register("polaron")
-class PolaronFittingNet(InvarFitting):
+@Fitting.register("population")
+class PopulationFittingNet(InvarFitting):
     """Fitting the rotationally invariant properties of `task_dim` of the system.
 
     Parameters
@@ -92,7 +92,7 @@ class PolaronFittingNet(InvarFitting):
     ) -> None:
         
         super().__init__(
-            var_name="spin",
+            var_name="population",
             ntypes=ntypes,
             dim_descrpt=dim_descrpt,
             neuron=neuron,
@@ -114,7 +114,7 @@ class PolaronFittingNet(InvarFitting):
         return FittingOutputDef(
             [
                 OutputVariableDef(
-                    "spin",
+                    "population",
                     [2],
                     reducible=True,
                     r_differentiable=False,
@@ -125,7 +125,7 @@ class PolaronFittingNet(InvarFitting):
 
 
     @classmethod
-    def deserialize(cls, data: dict) -> "PolaronFittingNet":
+    def deserialize(cls, data: dict) -> "PopulationFittingNet":
         data = data.copy()
         check_version_compatibility(data.pop("@version", 1), 4, 1)
         #data.pop("dim_out")
@@ -138,7 +138,7 @@ class PolaronFittingNet(InvarFitting):
         """Serialize the fitting to dict."""
         dd = {
             **InvarFitting.serialize(self),
-            "type": "polaron",
+            "type": "population",
         }
         dd["@version"] = 4
 
